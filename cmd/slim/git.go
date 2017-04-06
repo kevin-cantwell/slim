@@ -34,68 +34,65 @@ import (
 
   Any errors written by git will be reported to stderr. May return duplicates.
 */
-func fileChanges(commitComparison string) []string {
+func gitAllDiffs(commitComparison string) StringSet {
 	commitComparison = strings.TrimSpace(commitComparison)
+	if commitComparison == "" {
+		commitComparison = "HEAD"
+	}
 
-	// Then just return everything from status
-	// if commitComparison == "" {
-	// 	return gitStatus(false)
-	// }
-
+	// git diffs will return everything but untracked files
 	diffs := gitDiff(commitComparison)
 
-	// If it's an explicit comparison, we don't include new files
+	// If it's an explicit comparison, we don't care about untracked files
 	if strings.ContainsAny(commitComparison, " .") { // "sha1 sha2", "sha1..sha2", or "sha1...sha2"
 		return diffs
 	}
 
-	// If it's a single commit comparison (ie: HEAD), then append untracked files
-	return append(diffs, gitStatus(false)...)
+	// If it's a single commit comparison (ie: HEAD, or HEAD~2), then we append untracked files
+	diffs.Merge(gitUntracked())
+	return diffs
 }
 
-// git status --short --untracked-files --porcelain
-func gitStatus(onlyUntracked bool) []string {
-	/*
-	   The output will look like this, where the first two characters
-	   indicate the status, followed by a space, followed by the filename
-	   relative to the project root:
+/*
+  The output will look like this, where the first two characters
+  indicate the status, followed by a space, followed by the filename
+  relative to the project root:
 
-	    D README.md
-	   M  circle.yml
-	   ?? foo.bar
-	   ?? thjson/bar/baz/biz.txt
-	*/
+  D README.md
+  M  circle.yml
+  ?? foo.bar
+  ?? thjson/bar/baz/biz.txt
+
+  So we parse the output similar to:
+    git status --short --untracked-files --porcelain | grep "??" | cut -c 4-
+*/
+func gitUntracked() StringSet {
 	output := shell("git", "status", "--short", "--untracked-files", "--porcelain")
 
-	var filenames []string
+	filenames := StringSet{}
 	for _, file := range bytes.Split(output, []byte{'\n'}) {
 		if len(file) == 0 {
 			continue
 		}
-		if onlyUntracked && string(file[0:2]) != "??" {
+		if string(file[0:2]) != "??" { // ?? means untracked
 			continue
 		}
 
-		file = file[3:]                                                  // Strip the XY_ prefix
-		if split := bytes.Split(file, []byte(" -> ")); len(split) == 2 { // Handle file renames
-			filenames = append(filenames, string(split[0]))
-			file = split[1]
-		}
-		filenames = append(filenames, string(file))
+		filenames.Add(string(file[3:]))
 	}
 	return filenames
 }
 
 // git diff --name-only <commitPattern>
-func gitDiff(commitPattern string) []string {
+func gitDiff(commitPattern string) StringSet {
 	output := shell("git", "diff", "--name-only", commitPattern)
 
-	var filenames []string
+	filenames := StringSet{}
 	for _, file := range bytes.Split(output, []byte{'\n'}) {
 		if len(file) == 0 {
 			continue
 		}
-		filenames = append(filenames, string(file))
+		filenames.Add(string(file))
 	}
 	return filenames
 }

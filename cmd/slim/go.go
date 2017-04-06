@@ -7,9 +7,12 @@ import (
 )
 
 type Package struct {
-	Dir        string
-	ImportPath string
-	Deps       []string
+	Dir          string
+	Root         string
+	ImportPath   string
+	Deps         []string
+	TestImports  []string
+	XTestImports []string
 }
 
 func goList(args []string) []Package {
@@ -29,3 +32,8 @@ func goList(args []string) []Package {
 	}
 	return packages
 }
+
+// go test [build/test flags] [packages] [build/test flags & test binary flags]
+// func goTest(packages StringSet) {
+// 	output := shell("go", append([]string{"test"}))
+// }
