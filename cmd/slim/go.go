@@ -32,8 +32,3 @@ func goList(args []string) []Package {
 	}
 	return packages
 }
-
-// go test [build/test flags] [packages] [build/test flags & test binary flags]
-// func goTest(packages StringSet) {
-// 	output := shell("go", append([]string{"test"}))
-// }

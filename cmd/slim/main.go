@@ -41,7 +41,6 @@ func main() {
 		}
 		fmt.Println()
 	})
-	// goChanges = filterForGoCode(allChanges, filedDependencies)
 
 	packages := goList(flag.Args())
 
@@ -55,7 +54,6 @@ func main() {
 		fmt.Println()
 	})
 
-	// Otherwise go test will fail
 	removePathsWithoutBuildableGoFiles(impacted)
 
 	debugDo(func() {

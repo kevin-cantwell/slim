@@ -6,16 +6,15 @@ import (
 )
 
 /*
-  Difference determines which files in the project have changed, according to Git.
+  Determines which files in the project have changed, according to Git.
   Returns a slice of filenames relative to the project root and any error from
   executing the git command. The commitComparison behaves similarly to git diff:
 
     ""
-      All changes in your working tree, plus untracked files, plus cached files.
-        git status --short --untracked-files --porcelain
+      Equivalent to "HEAD"
 
     "<commit>"
-      All changes from the previous form, plus changes relative to the named <commit>.
+      All changes in your working tree, plus untracked files, plus cached files.
         git diff --name-only <commit>
 
     "<commit> <commit>"
