@@ -64,10 +64,10 @@ func gitAllDiffs(commitComparison string) StringSet {
   ?? thjson/bar/baz/biz.txt
 
   So we parse the output similar to:
-    git status --short --untracked-files --porcelain | grep "??" | cut -c 4-
+    git status --short --untracked-files=all --porcelain | grep "??" | cut -c 4-
 */
 func gitUntracked() StringSet {
-	output := shell("git", "status", "--short", "--untracked-files", "--porcelain")
+	output := shell("git", "status", "--short", "--untracked-files=all", "--porcelain")
 
 	filenames := StringSet{}
 	for _, file := range bytes.Split(output, []byte{'\n'}) {

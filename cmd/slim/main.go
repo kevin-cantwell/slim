@@ -113,6 +113,17 @@ func removePathsWithoutBuildableGoFiles(paths StringSet) {
 	}
 }
 
+func hasTestFiles(path string) bool {
+	infos, err := ioutil.ReadDir(path)
+	check(err)
+	for _, info := range infos {
+		if strings.HasSuffix(info.Name(), "_test.go") && info.Name()[0] != '.' && info.Name()[0] != '_' {
+			return true
+		}
+	}
+	return false
+}
+
 func pathsImpacted(packages []Package, diffs StringSet) StringSet {
 	// ie: locations that need testing
 	impactedPaths := StringSet{}
@@ -143,13 +154,17 @@ func pathsImpacted(packages []Package, diffs StringSet) StringSet {
 			continue
 		case strings.HasPrefix(dir, testdataPattern1):
 			// Then the project root needs testing (eg: testdata/foo/bar.txt)
-			impactedPaths.Add(".")
+			if hasTestFiles(".") {
+				impactedPaths.Add(".")
+			}
 			continue
 		case strings.Contains(dir, testdataPattern2):
 			// Changes to "testdata" directories impact tests in the parent directory and all ancestor dirs.
 			// (eg: foo/testdata/bar.txt)
 			for parentDir := dir[:strings.Index(dir, testdataPattern2)]; parentDir != "."; parentDir = filepath.Dir(parentDir) {
-				impactedPaths.Add(parentDir)
+				if hasTestFiles(parentDir) {
+					impactedPaths.Add(parentDir)
+				}
 			}
 			continue
 		case strings.HasSuffix(basename, ".go"):
