@@ -25,7 +25,13 @@ Where `<packages>` is the standard go packages pattern (see `go help list`).
 # Algorithm
 
 At a high-level: Slim evaluates the diff flag as a git diff and discovers packages in the current project that might
-be impacted by each file change. The output can be passed directly into go test. 
+be impacted by each file change. 
+
+The output can be passed directly into go test:
+
+```sh
+$ go test $(slim ./...)
+```
 
 At a low level:
 * Any path with a change to `*_test.go` or `*.go` files will be listed (not including files prefixed with `"."` or `"_"`).
